@@ -3,6 +3,7 @@ package com.example.elearning_platform.model;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "app_user")
 public class User {
 
     @Id

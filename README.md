@@ -69,14 +69,12 @@ A comprehensive Learning Management System (LMS) built with Spring Boot 3.3.5 an
   - Progress updates via API
   - Enrollment progress monitoring
 
-### 🌐 **Web Interface**
-- **Responsive Web Pages**
-  - Home page with welcome message
-  - User dashboard
-  - Login and registration forms
-  - Course creation interface
-  - Course listing and browsing
-  - Course approval interface
+### 🌐 **REST API Interface**
+- **Comprehensive REST Endpoints**
+  - Complete CRUD operations for all entities
+  - Role-based endpoint access control
+  - JSON request/response format
+  - RESTful API design patterns
 
 ### 📖 **API Documentation**
 - **Swagger/OpenAPI Integration**
@@ -105,14 +103,11 @@ A comprehensive Learning Management System (LMS) built with Spring Boot 3.3.5 an
 - **JJWT 0.12.6** - Latest JWT library for Java
 - **BCrypt** - Password hashing and verification
 
-### **API Documentation**
+### **API & Documentation**
 - **SpringDoc OpenAPI 2.6.0** - Swagger UI integration
+- **REST API** - RESTful web services architecture
+- **JSON** - Data exchange format
 - **OpenAPI 3.0** - API specification standard
-
-### **Web Technologies**
-- **Thymeleaf** - Server-side template engine
-- **HTML5/CSS3** - Modern web standards
-- **Bootstrap** - Responsive web design (via templates)
 
 ### **Testing**
 - **JUnit 5** - Unit testing framework
@@ -181,20 +176,223 @@ com.example.elearning_platform/
 |--------|----------|-------------|---------|
 | PUT | `/api/enrollments/{id}/progress` | Update progress | Student |
 
-### **Web Pages**
-| Page | URL | Description |
-|------|-----|-------------|
-| Home | `/` | Welcome page |
-| Dashboard | `/dashboard` | User dashboard |
-| Login | `/login` | Login form |
-| Register | `/register` | Registration form |
-| Create Course | `/create-course` | Course creation form |
-| Courses | `/courses` | Course listing |
-| Approve Courses | `/approve-courses` | Course approval interface |
+### **Additional Endpoints**
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|---------|
+| GET | `/api/users/test` | Test endpoint | Public |
+| GET | `/api/courses/pending` | List pending courses | Approver |
+| GET | `/api/courses/{id}/students` | Get enrolled students | Instructor |
 
 ### **API Documentation**
 - **Swagger UI**: `http://localhost:8080/swagger-ui.html`
 - **OpenAPI JSON**: `http://localhost:8080/v3/api-docs`
+
+## 📮 Using Postman with the API
+
+### **Setup Postman Collection**
+
+1. **Import the API Collection**
+   - Open Postman
+   - Click "Import" → "Link"
+   - Paste: `http://localhost:8080/v3/api-docs`
+   - Click "Continue" → "Import"
+
+2. **Set Environment Variables**
+   - Create a new environment in Postman
+   - Add these variables:
+     ```
+     base_url: http://localhost:8080
+     token: (leave empty, will be set after login)
+     ```
+
+### **Authentication Flow**
+
+#### **Step 1: Register a User**
+```http
+POST {{base_url}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "password": "password123",
+  "role": "STUDENT"
+}
+```
+
+#### **Step 2: Login to Get JWT Token**
+```http
+POST {{base_url}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "username": "john_doe",
+  "role": "STUDENT",
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+#### **Step 3: Set Authorization Header**
+- Copy the `token` from login response
+- In Postman, go to "Authorization" tab
+- Select "Bearer Token"
+- Paste the token value
+- Or set environment variable: `token: eyJhbGciOiJIUzI1NiJ9...`
+
+### **Common API Requests**
+
+#### **User Management**
+```http
+# Get all users (Admin only)
+GET {{base_url}}/api/users
+Authorization: Bearer {{token}}
+
+# Update user profile
+PUT {{base_url}}/api/users/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "john_doe_updated",
+  "role": "INSTRUCTOR"
+}
+```
+
+#### **Course Management**
+```http
+# Create a course (Instructor only)
+POST {{base_url}}/api/courses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Java Programming 101",
+  "description": "Learn Java from scratch",
+  "instructorId": 1
+}
+
+# Get all courses
+GET {{base_url}}/api/courses
+Authorization: Bearer {{token}}
+
+# Get course by ID
+GET {{base_url}}/api/courses/1
+Authorization: Bearer {{token}}
+
+# Update course
+PUT {{base_url}}/api/courses/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Advanced Java Programming",
+  "description": "Advanced Java concepts"
+}
+```
+
+#### **Course Approval (Approver only)**
+```http
+# Get pending courses
+GET {{base_url}}/api/courses/pending
+Authorization: Bearer {{token}}
+
+# Approve a course
+PUT {{base_url}}/api/courses/1/approve
+Authorization: Bearer {{token}}
+```
+
+#### **Enrollment Management**
+```http
+# Enroll in a course (Student only)
+POST {{base_url}}/api/enrollments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "studentId": 1,
+  "courseId": 1
+}
+
+# Get student enrollments
+GET {{base_url}}/api/enrollments/student/1
+Authorization: Bearer {{token}}
+
+# Update progress
+PUT {{base_url}}/api/enrollments/1/progress
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "progress": 75.5
+}
+```
+
+#### **File Upload (Course Materials)**
+```http
+# Upload course material (Instructor only)
+POST {{base_url}}/api/courses/1/materials
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+
+Form Data:
+- title: "Chapter 1 - Introduction"
+- description: "Introduction to Java"
+- file: [Select file from computer]
+```
+
+### **Postman Collection Structure**
+
+```
+📁 eLearning Platform API
+├── 🔐 Authentication
+│   ├── Register User
+│   └── Login User
+├── 👥 User Management
+│   ├── Get All Users
+│   ├── Get User by ID
+│   └── Update User
+├── 📚 Course Management
+│   ├── Create Course
+│   ├── Get All Courses
+│   ├── Get Course by ID
+│   ├── Update Course
+│   ├── Delete Course
+│   └── Get Pending Courses
+├── ✅ Course Approval
+│   └── Approve Course
+├── 📝 Enrollment
+│   ├── Enroll in Course
+│   ├── Get Student Enrollments
+│   └── Update Progress
+└── 📎 Course Materials
+    ├── Upload Material
+    └── Get Course Materials
+```
+
+### **Testing Tips**
+
+1. **Environment Variables**: Use `{{base_url}}` and `{{token}}` for easy switching between environments
+2. **Pre-request Scripts**: Add this to automatically set the token:
+   ```javascript
+   pm.request.headers.add({
+     key: 'Authorization',
+     value: 'Bearer ' + pm.environment.get('token')
+   });
+   ```
+3. **Test Scripts**: Add response validation:
+   ```javascript
+   pm.test("Status code is 200", function () {
+       pm.response.to.have.status(200);
+   });
+   ```
+4. **Role Testing**: Create different users with different roles to test authorization
 
 ## 🚀 Getting Started
 
@@ -227,7 +425,7 @@ com.example.elearning_platform/
    ```
 
 4. **Access the Application**
-   - Web Interface: `http://localhost:8080`
+   - API Base URL: `http://localhost:8080/api`
    - API Documentation: `http://localhost:8080/swagger-ui.html`
    - H2 Console (testing): `http://localhost:8080/h2-console`
 
@@ -423,10 +621,6 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 - Document new features
 - Update API documentation
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 📞 Support
 
 For support and questions:
@@ -436,15 +630,15 @@ For support and questions:
 
 ## 🔮 Future Enhancements
 
-### **Planned Features**
-- Real-time notifications
-- Advanced analytics dashboard
-- Mobile app support
-- Video streaming integration
-- Advanced assessment tools
-- Social learning features
-- Payment integration
-- Multi-language support
+### **Planned Backend Features**
+- Real-time notifications (WebSocket)
+- Advanced analytics API
+- File storage integration (AWS S3)
+- Advanced assessment APIs
+- Payment gateway integration
+- Email notification service
+- Advanced search and filtering
+- Bulk operations API
 
 ---
 
